@@ -1,0 +1,10 @@
+version: 1
+builder:
+  configs:
+  - platform: ios
+    scheme: SwiftUIPanoramaViewer
+  - platform: macos-xcodebuild
+    scheme: SwiftUIPanoramaViewer
+  - platform: tvos
+    scheme: SwiftUIPanoramaViewer
+  - documentation_targets: [SwiftUIPanoramaViewer]
