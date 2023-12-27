@@ -1,6 +1,6 @@
 //
 //  EularAngleConverter.swift
-//  ReedWriteCycle (iOS)
+//  SwiftUIPanoramaViewer Package
 //
 //  Created by Kevin Mullins on 3/31/22.
 //

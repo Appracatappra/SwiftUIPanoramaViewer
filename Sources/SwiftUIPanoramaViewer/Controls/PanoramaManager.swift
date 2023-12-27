@@ -1,6 +1,6 @@
 //
 //  PanoramaManager.swift
-//  Escape from Mystic Manor (iOS)
+//  SwiftUIPanoramaViewer Package
 //
 //  Created by Kevin Mullins on 2/9/22.
 //

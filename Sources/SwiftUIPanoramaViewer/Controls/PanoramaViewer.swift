@@ -1,6 +1,6 @@
 //
 //  PanoramaViewer.swift
-//  Escape from Mystic Manor (iOS)
+//  SwiftUIPanoramaViewer Package
 //
 //  Created by Kevin Mullins on 2/8/22.
 //  https://www.hackingwithswift.com/quick-start/swiftui/how-to-wrap-a-custom-uiview-for-swiftui
