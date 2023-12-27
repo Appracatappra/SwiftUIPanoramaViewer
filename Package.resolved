@@ -1,0 +1,32 @@
+{
+  "pins" : [
+    {
+      "identity" : "logmanager",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Appracatappra/LogManager",
+      "state" : {
+        "revision" : "bc21e80add4315c28e9461b8f583cfd79e4c74f8",
+        "version" : "1.0.3"
+      }
+    },
+    {
+      "identity" : "soundmanager",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Appracatappra/SoundManager",
+      "state" : {
+        "revision" : "04a17d306bea71729877696fa16a55cfb84f8e1a",
+        "version" : "1.0.3"
+      }
+    },
+    {
+      "identity" : "swiftletutilities",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Appracatappra/SwiftletUtilities",
+      "state" : {
+        "revision" : "c3d7cbe5cabcf5a6b6c305eeb50a8651b76cab64",
+        "version" : "1.1.15"
+      }
+    }
+  ],
+  "version" : 2
+}
