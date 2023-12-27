@@ -17,11 +17,18 @@ import SwiftUI
 import SwiftletUtilities
 import LogManager
 
+/// Extends `FloatingPoint` for `CTPanoramaViewer`.
 public extension FloatingPoint {
+    
+    // MARK: - Functions
+    /// Converts the `FloatingPoint` to degrees.
+    /// - Returns: Returns the `FloatingPoint``value in degrees.
     func toDegrees() -> Self {
         return self * 180 / .pi
     }
-
+    
+    /// Converst the `FloatingPoint` to radians.
+    /// - Returns: Returns the `FloatingPoint` value in radians
     func toRadians() -> Self {
         return self * .pi / 180
     }

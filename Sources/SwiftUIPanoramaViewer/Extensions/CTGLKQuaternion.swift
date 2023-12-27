@@ -20,12 +20,19 @@ import LogManager
 #if !os(tvOS)
 import CoreMotion
 
+/// Extends `GLKQuaternion` for `CTPanoramaViewer`.
 public extension GLKQuaternion {
    
+    // MARK: - Initializers
+    /// Creates a new instance.
+    /// - Parameter quanternion: The `CMQuaternion` to initialize with.
     init(quanternion: CMQuaternion) {
         self.init(q: (Float(quanternion.x), Float(quanternion.y), Float(quanternion.z), Float(quanternion.w)))
     }
-
+    
+    /// Calculates a vector for the given orientation.
+    /// - Parameter orientation: The current device `UIInterfaceOrientation`.
+    /// - Returns: Returns a `SCNVector4` for the orientation.
     func vector(for orientation: UIInterfaceOrientation) -> SCNVector4 {
         switch orientation {
         case .landscapeRight:

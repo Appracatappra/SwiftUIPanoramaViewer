@@ -17,7 +17,12 @@ import SwiftUI
 import SwiftletUtilities
 import LogManager
 
+// Extends `UIView` for `CTPanoramaView`.
 public extension UIView {
+    
+    // MARK: - Functions
+    /// Adds the given view as a child of this view.
+    /// - Parameter view: The view to add.
     func add(view: UIView) {
         view.translatesAutoresizingMaskIntoConstraints = false
         addSubview(view)

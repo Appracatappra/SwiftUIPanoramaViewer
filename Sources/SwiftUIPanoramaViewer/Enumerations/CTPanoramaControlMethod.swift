@@ -17,8 +17,14 @@ import SwiftUI
 import SwiftletUtilities
 import LogManager
 
+/// Defines the type of user interaction supported.
 @objc public enum CTPanoramaControlMethod: Int {
+    /// The panorama viewer will respond to the device being rotated.
     case motion
+    
+    /// The panorama viewer will respond to touch/drag events.
     case touch
+    
+    /// The panorama viewer will respond to the device being rotated and touch/drag events.
     case both
 }

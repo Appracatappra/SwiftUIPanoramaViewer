@@ -20,8 +20,12 @@ import LogManager
 #if !os(tvOS)
 import CoreMotion
 
+/// Extends `CMDeviceMotion`  for `CTPanoramaViewer`.
 public extension CMDeviceMotion {
 
+    // MARK: - Functions
+    /// Calculates an `SCNVector4` based on the device orientation.
+    /// - Returns: Returns a `SCNVector4`.
     func orientation() -> SCNVector4 {
 
         let attitude = self.attitude.quaternion

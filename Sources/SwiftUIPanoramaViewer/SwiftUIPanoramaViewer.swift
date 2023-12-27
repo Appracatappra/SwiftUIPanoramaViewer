@@ -18,4 +18,14 @@ public class SwiftUIPanoramaViewer {
         set: { let _ = $0 }
       )
     }
+    
+    /// Creates a binding around a `UIImage` for use in a `PanoramaViewer`.
+    /// - Parameter image: The `UIImage`to bind.
+    /// - Returns: Returns a bound `UIImage`.
+    public static func bindImage(_ image:UIImage?) -> Binding<UIImage?> {
+      return .init(
+        get: { image },
+        set: { let _ = $0 }
+      )
+    }
 }

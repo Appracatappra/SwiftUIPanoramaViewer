@@ -17,7 +17,11 @@ import SwiftUI
 import SwiftletUtilities
 import LogManager
 
+/// Defines the type of panorama being displayed.
 @objc public enum CTPanoramaType: Int {
+    /// The panorama image is a cylinder.
     case cylindrical
+    
+    /// The panorama image is a sphere.
     case spherical
 }

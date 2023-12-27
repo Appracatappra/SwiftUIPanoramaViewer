@@ -10,41 +10,48 @@ import Foundation
 import SwiftUI
 import UIKit
 
-/// Handles comminication with any panoramaview that has been embedded in the app.
+/// Handles comminication with any panoramaview that has been embedded in a SwiftUI `View`.
+/// - Remark: Only one `PanoramaViewer` can be active in an app at one time.
 class PanoramaManager {
     
     // MARK: - Enumerations
-    enum TargetType {
+    /// The type of target being worked with.
+    public enum TargetType {
+        /// A navigation target.
         case navigation
+        
+        /// An interaction target.
         case interaction
     }
     
     // MARK: - Static Properties
-    static public let emptyPoint:Float = 1000.0
+    public static let emptyPoint:Float = 1000.0
     
     /// Reference to the last panorama viewer that has been added to the app.
-    static public weak var lastPanoramaViewer:CTPanoramaView? = nil
+    /// - Remark: Only one `PanoramaViewer` can be active in an app at one time.
+    public static weak var lastPanoramaViewer:CTPanoramaView? = nil
     
-    /// If `true` the panorama view should updated the current image being displayed, if `false` the image will update.
-    /// - Remark: This feature is used to keep the panorama viewer from reseting itself when the SwiftUI view it is on updates layout but the "location" being viewed hasn't hanged.
-    static public var shouldUpdateImage:Bool = false
+    /// If `true` the panorama view should updated the current image being displayed, if `false` the image will not update.
+    /// - Remark: This feature is used to keep the panorama viewer from reseting itself when the SwiftUI view it updates layout but the "location/panorama" being viewed hasn't hanged.
+    public static var shouldUpdateImage:Bool = false
     
     /// If `true` when the image changes the rotation of the camera resets when a new image is loaded, else it does not.
-    static public var shouldResetCameraAngle:Bool = true
+    public static var shouldResetCameraAngle:Bool = true
     
     /// The value of the last rotation key.
-    static public var lastRotationKey:Int = 0
+    public static var lastRotationKey:Int = 0
     
     /// Defines the offsets used to make a navigation target.
-    static public let targetSizeNavigation:Float = 10.0
+    public static let targetSizeNavigation:Float = 10.0
     
     /// Defines the offsets used to make an interaction target.
-    static public let targetSizeInteraction:Float = 5.0
+    public static let targetSizeInteraction:Float = 5.0
     
     // MARK: - Static Functions
+    @available(*, deprecated, message: "Directly connecting a CTPieSliceView to a CTPanoramaView is deprecated when working with SwiftUI. Please use a CompassView instead.")
     /// Connects a panorama "pie slice" compass to the viewier.
     /// - Parameter compass: The compass view to attach.
-    static func connectCompass(_ compass:CTPieSliceView) {
+    public static func connectCompass(_ compass:CTPieSliceView) {
         // Ensure a panorama is connected
         guard let viewer = PanoramaManager.lastPanoramaViewer else {
             return
@@ -57,7 +64,22 @@ class PanoramaManager {
         PanoramaManager.lastPanoramaViewer = nil
     }
     
-    static func moveCamera(xAxis:Float, yAxis:Float) {
+    /// Moves the panorama rotation to the given X and Y coordinates.
+    ///
+    /// This function can be used with our `SwiftUIGamepad` package to allow a Gamepad attached to the device to rotate the panorama:
+    ///
+    /// ```
+    /// contents()
+    ///.onGamepadLeftThumbstick(viewID: viewID) { xAxis, yAxis in
+    ///     PanoramaManager.moveCamera(xAxis: xAxis, yAxis: yAxis)
+    ///}
+    /// ```
+    /// See: https://github.com/Appracatappra/SwiftUIGamepad for details.
+    ///
+    /// - Parameters:
+    ///   - xAxis: The new X axis location.
+    ///   - yAxis: The new Y axis location.
+    public static func moveCamera(xAxis:Float, yAxis:Float) {
         let location = CGPoint(x: CGFloat(xAxis * -10.0), y: CGFloat(yAxis * 10.0))
         PanoramaManager.lastPanoramaViewer?.handlePan(location: location)
     }
@@ -67,7 +89,8 @@ class PanoramaManager {
     ///   - point: The center of the target.
     ///   - targetType: The type of target to generate.
     /// - Returns: The leading target point.
-    static public func leadingTarget(_ point:Float, targetType:TargetType = .navigation) -> Float {
+    /// - Remark: This routine can be used to display a target interaction point in the UI in response to the panorama being rotated.
+    public static func leadingTarget(_ point:Float, targetType:TargetType = .navigation) -> Float {
         var target = point
         
         guard point != emptyPoint else {
@@ -93,7 +116,8 @@ class PanoramaManager {
     ///   - point: The center of the target.
     ///   - targetType: The type of target to generate.
     /// - Returns: The trailing target point.
-    static public func trailingTarget(_ point:Float, targetType:TargetType = .navigation) -> Float {
+    /// - Remark: This routine can be used to display a target interaction point in the UI in response to the panorama being rotated.
+    public static func trailingTarget(_ point:Float, targetType:TargetType = .navigation) -> Float {
         var target = point
         
         guard point != emptyPoint else {
@@ -123,7 +147,8 @@ class PanoramaManager {
     ///   - yawLeading: The leading yaw point.
     ///   - yawTrailing: The trailing yaw point.
     /// - Returns: Returns `true` if the pitch and yaw are inside of the target, else returns `false`.
-    static public func targetHit(pitch:Float, yaw:Float, pitchLeading:Float, pitchTrailing:Float, yawLeading:Float, yawTrailing:Float) -> Bool {
+    /// - Remark: This routine can be used to display a target interaction point in the UI in response to the panorama being rotated.
+    public static func targetHit(pitch:Float, yaw:Float, pitchLeading:Float, pitchTrailing:Float, yawLeading:Float, yawTrailing:Float) -> Bool {
         var result = false
         
         // Generated against an empty point?
@@ -143,7 +168,8 @@ class PanoramaManager {
     ///   - pointLeading: The leading rotation point.
     ///   - pointTrailing: The trailing rotation point.
     /// - Returns: Returns `true` if the point is inside of the range, else returns `false`.
-    static private func inRange(point:Float, pointLeading:Float, pointTrailing:Float) -> Bool {
+    /// - Remark: This routine can be used to display a target interaction point in the UI in response to the panorama being rotated.
+    public static func inRange(point:Float, pointLeading:Float, pointTrailing:Float) -> Bool {
         if pointTrailing > pointLeading {
             return (point >= pointTrailing && point <= 360.0) || ( point >= 0 && point <= pointLeading)
         } else {
