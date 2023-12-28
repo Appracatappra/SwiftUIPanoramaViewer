@@ -14,7 +14,8 @@ import UIKit
 /// The `PanoramaViewer` allows you to display an interactive panorama viewer in a SwiftUI `View`.
 ///
 /// Take the following example:
-/// ```
+///
+/// ```swift
 /// @State var rotationIndicator:Float = 0.0
 /// ...
 ///

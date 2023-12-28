@@ -17,6 +17,15 @@ import SwiftUI
 import SwiftletUtilities
 import LogManager
 
+/// The `CTPanoramaCompass` is used to tie a `CTPieSliceView` to a `CTPanoramaView` for automatic rotation when the Panorama rotates.
+/// - Remark: This protocol is deprecated when using the panorama viewer in a SwiftUI app.
+@available(*, deprecated, message: "This protocol is deprecated when using the panorama viewer in a SwiftUI app. Use a CompassView in your app directly instead.")
 @objc public protocol CTPanoramaCompass {
+    
+    // MARK: - Functions
+    /// Called when the panorama view is rotated.
+    /// - Parameters:
+    ///   - rotationAngle: The new rotation angle.
+    ///   - fieldOfViewAngle: The new field of view angle.
     func updateUI(rotationAngle: CGFloat, fieldOfViewAngle: CGFloat)
 }

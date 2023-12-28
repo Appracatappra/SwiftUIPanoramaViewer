@@ -14,7 +14,7 @@ import UIKit
 ///
 /// When displaying a `CompassView` in your SwiftUI `View`, place it in a `Zstack` to overlay the `PanoramaViewer` and use the `rotationEffect` attribute to rotate it to match the panorama's rotation. See:
 ///
-/// ```
+/// ```swift
 /// @State var rotationIndicator:Float = 0.0
 /// ...
 /// 
