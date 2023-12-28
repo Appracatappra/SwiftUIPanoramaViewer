@@ -92,7 +92,7 @@ If you need to change the panorama image that is being displayed in the `Panoram
 @State var panoImage:String = "MyImage"
 ...
 
-SwiftUIPanoramaViewer.bindImage(panoImage))
+PanoramaViewer(image: SwiftUIPanoramaViewer.bindImage(panoImage))
 ...
 
 // Change the displayed image
