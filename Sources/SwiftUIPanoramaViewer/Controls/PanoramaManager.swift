@@ -12,7 +12,7 @@ import UIKit
 
 /// Handles comminication with any panoramaview that has been embedded in a SwiftUI `View`.
 /// - Remark: Only one `PanoramaViewer` can be active in an app at one time.
-class PanoramaManager {
+open class PanoramaManager {
     
     // MARK: - Enumerations
     /// The type of target being worked with.
