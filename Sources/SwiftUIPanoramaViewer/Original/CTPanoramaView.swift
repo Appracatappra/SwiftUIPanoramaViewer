@@ -6,9 +6,6 @@
 //  Copyright © 2016 Home. All rights reserved.
 //
 //  From: https://github.com/scihant/CTPanoramaView
-//
-//  Heavily modified by Kevin Mullins for Appracatappra, LLC. to support modern OSes, SwiftUI, reading pitch & yaw and support for Gamepads.
-//  All modifications are released under the MIT License. See included License file for full details.
 
 import UIKit
 import SceneKit
@@ -21,77 +18,62 @@ import LogManager
 import CoreMotion
 #endif
 
-/// `CTPanoramaView` is a high-performance control that uses **SceneKit** to display complete spherical or cylindrical panoramas with touch or motion based controls that can be used in `UIKit` projects.
-/// - Remark: When using in a SwiftUI `View` use the `PanoramaViewer` instead of calling `CTPanoramaView` directly
-@objc open class CTPanoramaView: UIView, UIGestureRecognizerDelegate {
-    // MARK: - Types
-    // Handler for user interaction that reports the `rotationAngle` and `fieldOfViewAngle`.
-    public typealias CTMovementHandler = (_ rotationAngle: CGFloat, _ fieldOfViewAngle: CGFloat) -> Void
-    
-    /// Handler for panorama rotation changes.
-    public typealias CTRotationHandler = (_ rotationKey: Int) -> Void
-    
-    /// Handler for the panorama camera changing rotation.
-    public typealias CTCameraMovedHandler = (_ pitch:Float, _ yaw:Float, _ roll:Float) -> Void
+@objc public protocol CTPanoramaCompass {
+    func updateUI(rotationAngle: CGFloat, fieldOfViewAngle: CGFloat)
+}
 
-    // MARK: Properties
-    /// An instance of a `CTPanoramaCompass` that is being controlled by the `CTPanoramaView`.
-    @available(*, deprecated, message: "The compass property is deprecated when using CTPanoramaView in a PanoramaView. Use a CompassView in your SwiftUI view instead.")
+@objc public enum CTPanoramaControlMethod: Int {
+    case motion
+    case touch
+    case both
+}
+
+@objc public enum CTPanoramaType: Int {
+    case cylindrical
+    case spherical
+}
+
+@objc public class CTPanoramaView: UIView, UIGestureRecognizerDelegate {
+
+    // MARK: Public properties
+
     @objc public var compass: CTPanoramaCompass?
+    @objc public var movementHandler: ((_ rotationAngle: CGFloat, _ fieldOfViewAngle: CGFloat) -> Void)?
+    @objc public var rotationHandler: ((_ rotationKey: Int) -> Void)?
     
-    /// Handle the user interacting with the `CTPanoramaView`.
-    @available(*, deprecated, message: "When working in SwiftUI, the movementHandler property is deprecated. Use cameraMoved instead.")
-    @objc public var movementHandler: CTMovementHandler?
-    
-    /// Handle the panorama rotating.
-    @available(*, deprecated, message: "When working in SwiftUI, the rotationHandler property is deprecated. Use cameraMoved instead.")
-    @objc public var rotationHandler: CTRotationHandler?
-    
-    /// Handles the panorama camera moving as a result of user interaction.
-    @objc public var cameraMoved: CTCameraMovedHandler?
-    
-    /// How fast should the panorama move in response to user interaction.
+    @objc public var cameraMoved: ((_ pitch:Float, _ yaw:Float, _ roll:Float) -> Void)?
+
     @objc public var panSpeed = CGPoint(x: 0.4, y: 0.4)
-    
-    /// The starting angle for the panorama view.
     @objc public var startAngle: Float = 0
-    
-    /// The panorama angle of offset.
+
     @objc public var angleOffset: Float = 0 {
         didSet {
             geometryNode?.rotation = SCNQuaternion(0, 1, 0, angleOffset)
         }
     }
-    
-    /// The minimum Field Of View Angle.
+
     @objc public var minFoV: CGFloat = 40
-    
-    /// The maximum Field Of View Angle.
     @objc public var maxFoV: CGFloat = 100
-    
-    /// The `UIImage` currently being displayed.
+
     @objc public var image: UIImage? {
         didSet {
             panoramaType = panoramaTypeForCurrentImage
         }
     }
-    
-    /// A `UIview` that will be overlayed on the panorama view.
+
     @objc public var overlayView: UIView? {
         didSet {
             replace(overlayView: oldValue, with: overlayView)
         }
     }
-    
-    /// The type of panorama image being displayed.
+
     @objc public var panoramaType: CTPanoramaType = .cylindrical {
         didSet {
             createGeometryNode()
             resetCameraAngles();
         }
     }
-    
-    /// The type of user interaction that is used to change the panorama view.
+
     @objc public var controlMethod: CTPanoramaControlMethod = .touch {
         didSet {
             switchControlMethod(to: controlMethod)
@@ -99,103 +81,62 @@ import CoreMotion
         }
     }
     
-    /// The background color for the viewer.
+    // MARK: Overriding
+    
     public override var backgroundColor: UIColor? {
         didSet {
             sceneView.backgroundColor = backgroundColor
         }
     }
+
+    // MARK: Private properties
     
-    /// The pitch Eular Angle Converter.
     private let pitchConverter = EularAngleConverter()
-    
-    /// The yaw Eular Angle Converter.
     private let yawConverter = EularAngleConverter()
-    
-    /// The roll Eular Angle Converter.
     private let rollConverter = EularAngleConverter()
-    
-    /// The maximum pan.
+
     private let MaxPanGestureRotation: Float = GLKMathDegreesToRadians(360)
-    
-    /// The `SceneKit` projection sphere radius.
     private let radius: CGFloat = 10
-    
-    /// The `SceneKit` view that the panorama is disolayed iin.
     private let sceneView = SCNView()
-    
-    /// The `SceneKit` scene that is dislaying the panorama.
     private let scene = SCNScene()
-    
-    /// The `SceneKit` geometry node.
     private var geometryNode: SCNNode?
-    
-    /// The previous view location.
     private var prevLocation = CGPoint.zero
-    
-    /// The previous panorama rotation.
     private var prevRotation = CGFloat.zero
-    
-    /// The previous panorama view bounds.
     private var prevBounds = CGRect.zero
     
     #if !os(tvOS)
-    /// The device motion manager.
     private let motionManager = CMMotionManager()
     #endif
 
-    /// The total amount of X movement.
+    // Parameters used by the .both method
     private var totalX = Float.zero
-    
-    /// The total amount of Y movement.
     private var totalY = Float.zero
-    
-    /// If `true` motion updates are paused.
-    private var motionPaused = false
-    
-    /// The starting zoom scale.
-    private var startScale: CGFloat = 0.0
-    
-    // MARK: - Pitch and Yaw accumulators.
-    /// The amount of Yaw change.
-    public var xDeltaTotal:CGFloat = 0.0
-    
-    /// The amount of Pitch change.
-    public var yDeltaTotal:CGFloat = 0.0
-    
-    /// Holds the current calculated Pitch.
-    public var pitch:Float = 0.0
-    
-    /// Holds the current calculated Yaw.
-    public var yaw:Float = 0.0
 
-    // MARK: - Computed Properties
-    /// The `SceneKit`camera node.
+    private var motionPaused = false
+
     private lazy var cameraNode: SCNNode = {
         let node = SCNNode()
         let camera = SCNCamera()
         node.camera = camera
         return node
     }()
-    
-    /// The `SceneKit` operation queue.
+
     private lazy var opQueue: OperationQueue = {
         let queue = OperationQueue()
         queue.qualityOfService = .userInteractive
         return queue
     }()
-    
-    /// The field of vision height.
+
     private lazy var fovHeight: CGFloat = {
         return tan(self.yFov/2 * .pi / 180.0) * 2 * self.radius
     }()
-    
-    /// The field of vision X coordinate.
+
+    private var startScale: CGFloat = 0.0
+
     private var xFov: CGFloat {
         return yFov * self.bounds.width / self.bounds.height
     }
-    
-    /// The field of vision Y coordinate.
+
     private var yFov: CGFloat {
         get {
             if #available(iOS 11.0, *) {
@@ -212,9 +153,7 @@ import CoreMotion
             }
         }
     }
-    
-    /// Automatically sets the panorama type when the image is changed.
-    /// - Remark: This currently always returns `.spherical` since the automatic setting was causing odd behavior.
+
     private var panoramaTypeForCurrentImage: CTPanoramaType {
         // KKM - Disabling for this specific game and always lock to spherical
         //        if let image = image {
@@ -225,37 +164,32 @@ import CoreMotion
         return .spherical
     }
 
-    // MARK: - Initializers
-    /// Creates a new instance.
-    public init() {
-        super.init(frame: CGRect(x: 0, y: 0, width: CGFloat(HardwareInformation.screenWidth), height: CGFloat(HardwareInformation.screenHeight)))
-    }
-    
-    /// Creates a new instance.
-    /// - Parameter aDecoder: The `NSCoder` to build the view from.
+    // MARK: Class lifecycle methods
+
     public required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
         commonInit()
     }
-    
-    /// Creates a new instance.
-    /// - Parameter frame: The frame to build the view in.
+
     public override init(frame: CGRect) {
         super.init(frame: frame)
         commonInit()
     }
-    
-    /// Creates a new instance.
-    /// - Parameters:
-    ///   - frame: The frame to build the view in.
-    ///   - image: The `UIImage` to display in the viewer.
+
     public convenience init(frame: CGRect, image: UIImage) {
         self.init(frame: frame)
         // Force Swift to call the property observer by calling the setter from a non-init context
         ({ self.image = image })()
     }
-    
-    /// Common operations that are performed during initialization.
+
+    deinit {
+        #if !os(tvOS)
+        if motionManager.isDeviceMotionActive {
+            motionManager.stopDeviceMotionUpdates()
+        }
+        #endif
+    }
+
     private func commonInit() {
         add(view: sceneView)
 
@@ -266,19 +200,9 @@ import CoreMotion
 
         switchControlMethod(to: controlMethod)
      }
-    
-    // MARK: - Deinitializers
-    /// Handle the view being disposed of.
-    deinit {
-        #if !os(tvOS)
-        if motionManager.isDeviceMotionActive {
-            motionManager.stopDeviceMotionUpdates()
-        }
-        #endif
-    }
 
-    // MARK: - Functions
-    /// Resets the camera angle to the default position.
+    // MARK: Public methods
+
     public func resetCameraAngles() {
         if PanoramaManager.shouldResetCameraAngle {
             yFov = maxFoV
@@ -299,8 +223,9 @@ import CoreMotion
             self.reportCameraMovement()
         }
     }
-    
-    /// Creates the `SceneKit` geometry node to hold the panorama image.
+
+    // MARK: Configuration helper methods
+
     private func createGeometryNode() {
         guard let image = image else {return}
 
@@ -335,18 +260,13 @@ import CoreMotion
         geometryNode?.rotation = SCNQuaternion(0, 1, 0, angleOffset)
         scene.rootNode.addChildNode(geometryNode!)
     }
-    
-    /// Repalces the overlay view with a new overlay view.
-    /// - Parameters:
-    ///   - overlayView: The overlay to replace.
-    ///   - newOverlayView: The new overlay.
+
     private func replace(overlayView: UIView?, with newOverlayView: UIView?) {
         overlayView?.removeFromSuperview()
         guard let newOverlayView = newOverlayView else {return}
         add(view: newOverlayView)
     }
-    
-    /// Starts providing motion updated to the caller.
+
     private func startMotionUpdates(){
 
         #if !os(tvOS)
@@ -416,9 +336,7 @@ import CoreMotion
         })
         #endif
     }
-    
-    /// Switch the method that users use to interact with the panorama viewer.
-    /// - Parameter method: The type of user control desired.
+
     private func switchControlMethod(to method: CTPanoramaControlMethod) {
         sceneView.gestureRecognizers?.removeAll()
 
@@ -462,15 +380,9 @@ import CoreMotion
 
         }
     }
-    
-    /// Report panorama movement to the caller.
-    /// - Parameters:
-    ///   - rotationAngle: The rotation angle.
-    ///   - fieldOfViewAngle: The field of view angle.
-    ///   - callHandler: A callback handler to handle the rotation changing.
+
     private func reportMovement(_ rotationAngle: CGFloat, _ fieldOfViewAngle: CGFloat, callHandler: Bool = true) {
 
-        // KKM - Since we are not using the embedded compass, we are commenting this code out.
         compass?.updateUI(rotationAngle: rotationAngle, fieldOfViewAngle: fieldOfViewAngle)
         if callHandler {
             movementHandler?(rotationAngle, fieldOfViewAngle)
@@ -491,23 +403,30 @@ import CoreMotion
         reportCameraMovement()
     }
     
-    /// Report camera movement to the end user.
-    private func reportCameraMovement() {
+    func reportCameraMovement() {
         if let cameraMoved = cameraMoved {
             cameraMoved(round(pitch), round(yaw), 0.0)
         }
     }
     
-    /// Convert radians to degrees.
-    /// - Parameter radians: The radians to convert.
-    /// - Returns: Returns the radian values converted to degrees.
-    private func radiansToDegrees(_ radians:Float) -> Float {
+    func radiansToDegrees(_ radians:Float) -> Float {
         return fmodf(360.0 + radians * (180.0 / Float(Double.pi)), 360.0)
     }
     
-    // MARK: Gesture Handling
-    /// Handle the user panning the panorama view.
-    /// - Parameter panRec: The pan gesture recognizer.
+    // MARK: - Pitch and Yaw accumulators.
+    // The amount of Yaw change.
+    var xDeltaTotal:CGFloat = 0.0
+    
+    // The amount of Pitch change.
+    var yDeltaTotal:CGFloat = 0.0
+    
+    // Holds the current calculated Pitch.
+    var pitch:Float = 0.0
+    
+    // Holds the current calculated Yaw.
+    var yaw:Float = 0.0
+    
+    // MARK: Gesture handling
     @objc private func handlePan(panRec: UIPanGestureRecognizer) {
         if panRec.state == .began {
             prevLocation = CGPoint.zero
@@ -594,8 +513,6 @@ import CoreMotion
         }
     }
     
-    /// Handle the user panning the panorama view.
-    /// - Parameter location: The new location to move the panorama to.
     @objc public func handlePan(location: CGPoint) {
         var modifiedPanSpeed = panSpeed
         
@@ -676,8 +593,6 @@ import CoreMotion
     }
 
     #if !os(tvOS)
-    /// Handle the user pinching to zoom the panorama view.
-    /// - Parameter pinchRec: The pinch gesture recognizer.
     @objc func handlePinch(pinchRec: UIPinchGestureRecognizer) {
         if pinchRec.numberOfTouches != 2 {
             return
@@ -707,9 +622,7 @@ import CoreMotion
             break
         }
     }
-    
-    /// Handle the user rotating the device.
-    /// - Parameter rotRec: The rotation gesture handler.
+
     @objc func handleRotate(rotRec: UIRotationGestureRecognizer) {
 
         // no rotation for cylindrical
@@ -750,8 +663,7 @@ import CoreMotion
         }
     }
     #endif
-    
-    /// Layout any subviews attached to this view.
+
     public override func layoutSubviews() {
         super.layoutSubviews()
         if bounds.size.width != prevBounds.size.width || bounds.size.height != prevBounds.size.height {
@@ -759,12 +671,7 @@ import CoreMotion
             reportMovement(CGFloat(-cameraNode.eulerAngles.y), xFov.toRadians(), callHandler: false)
         }
     }
-    
-    /// Checks to see if a given gesture recognizer is valid with this panorama viewer.
-    /// - Parameters:
-    ///   - gestureRecognizer: The gesture recognizer to check.
-    ///   - otherGestureRecognizer: A list of gesture recognizers already attached to the view.
-    /// - Returns: Returns `true` if the gesture is valid, else returns `false`.
+
     public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
 
         // do not mix pan gestures with the others
@@ -775,4 +682,98 @@ import CoreMotion
     }
 }
 
+#if !os(tvOS)
+private extension CMDeviceMotion {
 
+    func orientation() -> SCNVector4 {
+
+        let attitude = self.attitude.quaternion
+        let attitudeQuanternion = GLKQuaternion(quanternion: attitude)
+
+        let result: SCNVector4
+
+        // From UIApplication.shared.statusBarOrientation
+        switch HardwareInformation.windowOrientation {
+
+        case .landscapeRight:
+            let cq1 = GLKQuaternionMakeWithAngleAndAxis(.pi/2, 0, 1, 0)
+            let cq2 = GLKQuaternionMakeWithAngleAndAxis(-(.pi/2), 1, 0, 0)
+            var quanternionMultiplier = GLKQuaternionMultiply(cq1, attitudeQuanternion)
+            quanternionMultiplier = GLKQuaternionMultiply(cq2, quanternionMultiplier)
+
+            result = quanternionMultiplier.vector(for: .landscapeRight)
+
+        case .landscapeLeft:
+            let cq1 = GLKQuaternionMakeWithAngleAndAxis(-(.pi/2), 0, 1, 0)
+            let cq2 = GLKQuaternionMakeWithAngleAndAxis(-(.pi/2), 1, 0, 0)
+            var quanternionMultiplier = GLKQuaternionMultiply(cq1, attitudeQuanternion)
+            quanternionMultiplier = GLKQuaternionMultiply(cq2, quanternionMultiplier)
+
+            result = quanternionMultiplier.vector(for: .landscapeLeft)
+
+        case .portraitUpsideDown:
+            let cq1 = GLKQuaternionMakeWithAngleAndAxis(-(.pi/2), 1, 0, 0)
+            let cq2 = GLKQuaternionMakeWithAngleAndAxis(.pi, 0, 0, 1)
+            var quanternionMultiplier = GLKQuaternionMultiply(cq1, attitudeQuanternion)
+            quanternionMultiplier = GLKQuaternionMultiply(cq2, quanternionMultiplier)
+
+            result = quanternionMultiplier.vector(for: .portraitUpsideDown)
+
+        default:
+            let clockwiseQuanternion = GLKQuaternionMakeWithAngleAndAxis(-(.pi/2), 1, 0, 0)
+            let quanternionMultiplier = GLKQuaternionMultiply(clockwiseQuanternion, attitudeQuanternion)
+
+            result = quanternionMultiplier.vector(for: .portrait)
+        }
+        return result
+    }
+}
+#endif
+
+private extension UIView {
+    func add(view: UIView) {
+        view.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(view)
+        let views = ["view": view]
+        let hConstraints = NSLayoutConstraint.constraints(withVisualFormat: "|[view]|", options: [], metrics: nil, views: views)
+        let vConstraints = NSLayoutConstraint.constraints(withVisualFormat: "V:|[view]|", options: [], metrics: nil, views: views)
+        self.addConstraints(hConstraints)
+        self.addConstraints(vConstraints)
+    }
+}
+
+private extension FloatingPoint {
+    func toDegrees() -> Self {
+        return self * 180 / .pi
+    }
+
+    func toRadians() -> Self {
+        return self * .pi / 180
+    }
+}
+
+#if !os(tvOS)
+private extension GLKQuaternion {
+   
+    init(quanternion: CMQuaternion) {
+        self.init(q: (Float(quanternion.x), Float(quanternion.y), Float(quanternion.z), Float(quanternion.w)))
+    }
+
+    func vector(for orientation: UIInterfaceOrientation) -> SCNVector4 {
+        switch orientation {
+        case .landscapeRight:
+            return SCNVector4(x: -self.y, y: self.x, z: self.z, w: self.w)
+
+        case .landscapeLeft:
+            return SCNVector4(x: self.y, y: -self.x, z: self.z, w: self.w)
+
+        case .portraitUpsideDown:
+            return SCNVector4(x: -self.x, y: -self.y, z: self.z, w: self.w)
+
+        default:
+            return SCNVector4(x: self.x, y: self.y, z: self.z, w: self.w)
+        }
+    }
+    
+}
+#endif

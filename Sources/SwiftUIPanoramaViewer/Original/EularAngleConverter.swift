@@ -1,6 +1,6 @@
 //
 //  EularAngleConverter.swift
-//  SwiftUIPanoramaViewer Package
+//  ReedWriteCycle (iOS)
 //
 //  Created by Kevin Mullins on 3/31/22.
 //
@@ -8,56 +8,26 @@
 import Foundation
 
 // Handles turning a SceneKit camera's eular angles into a 360 degree rotation offset.
-open class EularAngleConverter {
+public class EularAngleConverter {
     
     // MARK: - Enumerations
-    /// The quadrant that the angle represents.
     public enum Quadrant {
-        /// The top left quadrant.
         case topLeft
-        
-        /// The top right quadrant.
         case topRight
-        
-        /// The bottom left quadrant.
         case bottomLeft
-        
-        /// The bottom right quadrant.
         case bottomRight
     }
     
     // MARK: - Properties
-    /// The quadrant being converted.
     private var quad:Quadrant = .topLeft
-    
-    /// The last angle of conversion.
     private var lastAngle:Float = 0.0
     
-    // MARK: - Initializers
-    /// Creates a new instance.
-    public init() {
-        
-    }
-    
-    /// Creates a new instance.
-    /// - Parameters:
-    ///   - quad: The quadrant being converted.
-    ///   - lastAngle: The last angle of conversion.
-    public init(quad: Quadrant, lastAngle: Float) {
-        self.quad = quad
-        self.lastAngle = lastAngle
-    }
-    
     // MARK: - Functions
-    /// Resets the converter.
     public func reset() {
         quad = .topLeft
         lastAngle = 0.0
     }
     
-    /// Calculates the degress from the given eular angles.
-    /// - Parameter angle: The angle to be converted.
-    /// - Returns: Returns the eular angle in degrees.
     public func eularToDegrees(_ angle:Float) -> Float {
         // Calculate the initial angle which will fall into two chunks (0...90) & (90...180)
         // with two "magic" numbers 90 and -90.
