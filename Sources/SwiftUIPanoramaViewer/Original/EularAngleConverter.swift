@@ -11,23 +11,38 @@ import Foundation
 public class EularAngleConverter {
     
     // MARK: - Enumerations
+    /// The quadrant that the angle represents.
     public enum Quadrant {
+        /// The top left quadrant.
         case topLeft
+        
+        /// The top right quadrant.
         case topRight
+        
+        /// The bottom left quadrant.
         case bottomLeft
+        
+        /// The bottom right quadrant.
         case bottomRight
     }
     
     // MARK: - Properties
+    /// The quadrant being converted.
     private var quad:Quadrant = .topLeft
+    
+    /// The last angle of conversion.
     private var lastAngle:Float = 0.0
     
     // MARK: - Functions
+    /// Resets the converter.
     public func reset() {
         quad = .topLeft
         lastAngle = 0.0
     }
     
+    /// Calculates the degress from the given eular angles.
+    /// - Parameter angle: The angle to be converted.
+    /// - Returns: Returns the eular angle in degrees.
     public func eularToDegrees(_ angle:Float) -> Float {
         // Calculate the initial angle which will fall into two chunks (0...90) & (90...180)
         // with two "magic" numbers 90 and -90.
