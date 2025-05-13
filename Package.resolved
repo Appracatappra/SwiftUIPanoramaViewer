@@ -6,8 +6,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Appracatappra/LogManager",
       "state" : {
-        "revision" : "bf916fa61fd3d3f006bcede8e9ca2d4910279478",
-        "version" : "2.0.0"
+        "revision" : "ed7b6f091d9f261e75211c214a4ba0ea3ba7a84d",
+        "version" : "2.0.4"
       }
     },
     {
@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Appracatappra/SoundManager",
       "state" : {
-        "revision" : "6e73b374abdd9858a873fa72a89e5e09b0ffb4c8",
-        "version" : "2.0.0"
+        "revision" : "bbfbe3ac35f97accc3f9084ee5384d6b0786602f",
+        "version" : "2.0.3"
       }
     },
     {
@@ -24,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Appracatappra/SwiftletUtilities",
       "state" : {
-        "revision" : "b3564b394c7d81f02c8f62e821a38efa62a97d66",
-        "version" : "2.0.1"
+        "revision" : "2903319b5a082b649a0f608f5c30fa3f78c42cc8",
+        "version" : "2.0.4"
       }
     }
   ],

@@ -94,7 +94,7 @@ import UIKit
 }
 
 /// Extends `CTPanoramaCompass` and provides a common update function.
-extension CTPieSliceView: CTPanoramaCompass {
+extension CTPieSliceView: @preconcurrency CTPanoramaCompass {
     
     // MARK: - Functions
     /// Updates the control's UI.

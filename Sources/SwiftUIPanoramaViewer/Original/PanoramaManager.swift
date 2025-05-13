@@ -29,17 +29,17 @@ public class PanoramaManager {
     static public let emptyPoint:Float = 1000.0
     
     /// Reference to the last panorama viewer that has been added to the app.
-    static public weak var lastPanoramaViewer:CTPanoramaView? = nil
+    static nonisolated(unsafe) public weak var lastPanoramaViewer:CTPanoramaView? = nil
     
     /// If `true` the panorama view should updated the current image being displayed, if `false` the image will update.
     /// - Remark: This feature is used to keep the panorama viewer from reseting itself when the SwiftUI view it is on updates layout but the "location" being viewed hasn't hanged.
-    static public var shouldUpdateImage:Bool = false
+    static nonisolated(unsafe) public var shouldUpdateImage:Bool = false
     
     /// If `true` when the image changes the rotation of the camera resets when a new image is loaded, else it does not.
-    static public var shouldResetCameraAngle:Bool = true
+    static nonisolated(unsafe) public var shouldResetCameraAngle:Bool = true
     
     /// The value of the last rotation key.
-    static public var lastRotationKey:Int = 0
+    static nonisolated(unsafe) public var lastRotationKey:Int = 0
     
     /// Defines the offsets used to make a navigation target.
     static public let targetSizeNavigation:Float = 10.0
@@ -50,7 +50,7 @@ public class PanoramaManager {
     // MARK: - Static Functions
     /// Connects a panorama "pie slice" compass to the viewier.
     /// - Parameter compass: The compass view to attach.
-    public static func connectCompass(_ compass:CTPieSliceView) {
+    @MainActor public static func connectCompass(_ compass:CTPieSliceView) {
         // Ensure a panorama is connected
         guard let viewer = PanoramaManager.lastPanoramaViewer else {
             return
@@ -78,7 +78,7 @@ public class PanoramaManager {
     /// - Parameters:
     ///   - xAxis: The new X axis location.
     ///   - yAxis: The new Y axis location.
-    public static func moveCamera(xAxis:Float, yAxis:Float) {
+    @MainActor public static func moveCamera(xAxis:Float, yAxis:Float) {
         let location = CGPoint(x: CGFloat(xAxis * -10.0), y: CGFloat(yAxis * 10.0))
         PanoramaManager.lastPanoramaViewer?.handlePan(location: location)
     }

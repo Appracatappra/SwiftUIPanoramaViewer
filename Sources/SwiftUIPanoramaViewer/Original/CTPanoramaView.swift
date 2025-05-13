@@ -15,7 +15,7 @@ import SwiftletUtilities
 import LogManager
 
 #if !os(tvOS)
-import CoreMotion
+@preconcurrency import CoreMotion
 #endif
 
 /// The `CTPanoramaCompass` is used to tie a `CTPieSliceView` to a `CTPanoramaView` for automatic rotation when the Panorama rotates.
@@ -797,7 +797,7 @@ private extension CMDeviceMotion {
     // MARK: - Functions
     /// Calculates an `SCNVector4` based on the device orientation.
     /// - Returns: Returns a `SCNVector4`.
-    func orientation() -> SCNVector4 {
+    @MainActor func orientation() -> SCNVector4 {
 
         let attitude = self.attitude.quaternion
         let attitudeQuanternion = GLKQuaternion(quanternion: attitude)
