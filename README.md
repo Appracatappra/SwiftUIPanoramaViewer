@@ -1,6 +1,6 @@
 # SwiftUIPanoramaViewer
 
-![](https://img.shields.io/badge/license-MIT-green) ![](https://img.shields.io/badge/maintained%3F-Yes-green) ![](https://img.shields.io/badge/swift-6.0-green) ![](https://img.shields.io/badge/iOS-18.0-red) ![](https://img.shields.io/badge/macOS-15.0-red) ![](https://img.shields.io/badge/tvOS-18.0-red) ![](https://img.shields.io/badge/dependency-LogManager-orange) ![](https://img.shields.io/badge/dependency-SoundManager-orange) ![](https://img.shields.io/badge/dependency-SwiftletUtilities-orange)
+![](https://img.shields.io/badge/license-MIT-green) ![](https://img.shields.io/badge/maintained%3F-Yes-green) ![](https://img.shields.io/badge/swift-6.4-green) ![](https://img.shields.io/badge/iOS-26.0-red) ![](https://img.shields.io/badge/macOS-26.0-red) ![](https://img.shields.io/badge/tvOS-26.0-red) ![](https://img.shields.io/badge/dependency-LogManager-orange) ![](https://img.shields.io/badge/dependency-SoundManager-orange) ![](https://img.shields.io/badge/dependency-SwiftletUtilities-orange)
 
 `SwiftUIPanoramaViewer` is a high-performance library that uses **SceneKit** to display complete spherical or cylindrical panoramas with touch, Gamepad or motion based controls that can be used in **SwiftUI** projects.
 
